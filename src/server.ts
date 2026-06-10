@@ -77,8 +77,8 @@ class MicrosoftGraphServer {
       clientCodeChallengeMethod: string;
       serverCodeVerifier: string;
       createdAt: number;
-      clientRedirectUri?: string;  // original redirect_uri from the MCP client
-      serverRedirectUri?: string;  // server's own /callback URL sent to Microsoft
+      clientRedirectUri?: string; // original redirect_uri from the MCP client
+      serverRedirectUri?: string; // server's own /callback URL sent to Microsoft
     }
   > = new Map();
 
@@ -598,7 +598,8 @@ class MicrosoftGraphServer {
         if (code) clientRedirect.searchParams.set('code', code);
         if (state) clientRedirect.searchParams.set('state', state);
         if (error) clientRedirect.searchParams.set('error', error);
-        if (errorDescription) clientRedirect.searchParams.set('error_description', errorDescription);
+        if (errorDescription)
+          clientRedirect.searchParams.set('error_description', errorDescription);
 
         logger.info('Callback: forwarding code to MCP client', {
           state: state.substring(0, 8) + '...',
