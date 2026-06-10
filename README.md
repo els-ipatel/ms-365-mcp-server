@@ -1,4 +1,4 @@
-# ms-365-mcp-server
+# ceteam-ms-365-mcp-server
 
 [![npm version](https://img.shields.io/npm/v/@softeria/ms-365-mcp-server.svg)](https://www.npmjs.com/package/@softeria/ms-365-mcp-server) [![build status](https://github.com/softeria/ms-365-mcp-server/actions/workflows/build.yml/badge.svg)](https://github.com/softeria/ms-365-mcp-server/actions/workflows/build.yml) [![license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/softeria/ms-365-mcp-server/blob/main/LICENSE)
 
@@ -6,6 +6,25 @@ Microsoft 365 MCP Server
 
 A Model Context Protocol (MCP) server for interacting with Microsoft 365 and Microsoft Office services through the Graph
 API.
+
+## Elsevier Fork Note
+
+This repository is a fork of [Softeria/ms-365-mcp-server](https://github.com/Softeria/ms-365-mcp-server) maintained for Elsevier requirements.
+
+The main permission difference in this fork is SharePoint access:
+
+- SharePoint tools are intended to run with delegated `Sites.Selected`.
+- This avoids requiring broad delegated SharePoint scopes such as `Sites.Read.All`, `Sites.ReadWrite.All`, or `Sites.Manage.All` for normal tool usage.
+- Access is granted per site in Microsoft Graph by assigning the app permissions on specific SharePoint sites.
+
+If your deployment has not granted site-level access for `Sites.Selected`, SharePoint tools will be unavailable or fail authorization.
+
+Difference from upstream (permission model):
+
+- [src/auth.ts](src/auth.ts) defines `Sites.Selected` as covering broad SharePoint delegated scopes in `SCOPE_HIERARCHY`.
+- [src/auth.ts](src/auth.ts) removes redundant broad scopes during scope selection in `collapseRedundantScopes`.
+- [src/endpoints.json](src/endpoints.json) defines SharePoint endpoints with `workScopes` that include `Sites.Selected`.
+- [test/scope-derivation.test.ts](test/scope-derivation.test.ts) verifies org-mode scope derivation expects `Sites.Selected`.
 
 ## Supported Clouds
 
@@ -121,6 +140,8 @@ npx @softeria/ms-365-mcp-server --preset mail --list-permissions
 
 This is useful for enterprise environments where Graph API permissions must be pre-approved and admin-consented before deploying a new version.
 
+For this Elsevier fork, organization mode commonly reports `Sites.Selected` for SharePoint scenarios.
+
 The `--list-permissions` JSON includes:
 
 - `toolPermissions`: permissions implied by the tool surface before `--allowed-scopes` filtering
@@ -147,6 +168,16 @@ npx @softeria/ms-365-mcp-server \
 CLI value takes precedence over `MS365_MCP_ALLOWED_SCOPES`; if neither is set, the default tool-derived scope behavior is unchanged. Supplying an empty value fails at startup so deployments do not accidentally fall back to a wider tool surface.
 
 Scope coverage is hierarchy-aware: for example, `Mail.ReadWrite` covers tools that require `Mail.Read`, and `Files.ReadWrite.All` covers tools that require `Files.Read`.
+
+This fork also treats `Sites.Selected` as covering SharePoint tool requirements that would otherwise require broader `Sites.*.All` delegated scopes.
+
+Example for an org-mode deployment constrained to selected SharePoint sites:
+
+```bash
+npx @softeria/ms-365-mcp-server \
+  --org-mode \
+  --allowed-scopes 'User.Read Files.Read Sites.Selected'
+```
 
 In HTTP mode, OAuth discovery advertises the effective filtered permissions so clients request the same consent surface. On-Behalf-Of mode (`--obo`) still advertises `api://<clientId>/access_as_user` for protected-resource metadata; `--allowed-scopes` does not override OBO.
 
