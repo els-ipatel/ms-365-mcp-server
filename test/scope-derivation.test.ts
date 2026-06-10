@@ -45,8 +45,8 @@ describe('buildScopesFromEndpoints', () => {
       const personal = buildScopesFromEndpoints(false, undefined, false);
       const org = buildScopesFromEndpoints(true, undefined, false);
       expect(org.length).toBeGreaterThan(personal.length);
-      expect(org).toContain('Sites.Read.All');
-      expect(personal).not.toContain('Sites.Read.All');
+      expect(org).toContain('Sites.Selected');
+      expect(personal).not.toContain('Sites.Selected');
     });
   });
 
@@ -58,9 +58,9 @@ describe('buildScopesFromEndpoints', () => {
       expect(scopes).not.toContain('Mail.ReadWrite');
     });
 
-    it('includes Files.Read and Sites.Read.All for read-only search tools', () => {
+    it('includes Files.Read and Sites.Selected for read-only search tools', () => {
       expect(scopes).toContain('Files.Read');
-      expect(scopes).toContain('Sites.Read.All');
+      expect(scopes).toContain('Sites.Selected');
     });
   });
 });
